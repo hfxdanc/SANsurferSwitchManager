@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>org.flatpak.SANsurfer_Switch_Manager</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2.0-only</project_license>
+  <project_license>MIT</project_license>
+  <project_license>LicenseRef-proprietary=https://www.marvell.com/company/trademarks.html</project_license>
+  <developer_name>NetSurf Developers</developer_name>
+  <developer_name>QLogic Corporation</developer_name>
+  <content_rating type="oars-1.1"/>
+  <categories>
+    <category>Network</category>
+    <category>Settings</category>
+    <category>System</category>
+  </categories>
+
+  <name>SANsurfer Switch Manager</name>
+  <summary>QLogic Fibre Channel Switch Management tool</summary>
+  <description>
+    <p>
+            Management tool (graphical user interface) for installation on Linux platforms
+            for use with QLogic Fibre Channel switch firmware versions: 1.3.56, 1.3.64,
+            and 4.01.45 and higher.
+    </p>
+    <p>This is a build of SANsurfer Switch Manager for Linux, packaged into a Flatpak.</p>
+    <p>
+            Help viewing is provided by NetSurf (a multi-platform lightweight web browser)
+            https://www.netsurf-browser.org
+    </p>
+    <p>Sandbox permissions are as limited as possible ...</p>
+    <ul>
+      <li>XDG_DATA_HOME ($HOME/.local/share/SANboxManager) directory is shared</li>
+      <li>Application preferences file ($HOME/.SANboxManager.properties) is shared</li>
+    </ul>
+    <p>NOTE: The Preferences files must be created manually ...</p>
+    <p>$ touch ~/.SANboxManager.properties</p>
+    <p>NOTE: This wrapper is not verified by, affiliated with, or supported by QLogic Corporation</p>
+  </description>
+
+  <launchable type="desktop-id">org.flatpak.SANsurfer_Switch_Manager.desktop</launchable>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>Typical view</caption>
+      <image>https://techpubs.jurassic.nl/manuals/0650/admin/CXFS_HC_AG/sgi_html/figures/Qlogic_SANSurfer.gif</image>
+    </screenshot>
+  </screenshots>
+
+  <url type="homepage">https://driverdownloads.qlogic.com/QLogicDriverDownloads_UI/SearchByProd.aspx?ProductCategory=41&amp;Product=299&amp;ProductName=SANbox+2-8</url>
+
+  <releases>
+    <release version="5.00.1.09" date="2006-04-01">
+      <description>
+        <p>
+                These release notes describe the changes, fixes, known issues, and
+                release details that apply to QLogic SANbox and Sanbox2 switch
+                product family, GUI version: 5.00.1.09 and firmware version 5.0.1.10.
+        </p>
+        <p>
+                This document provides details of the modifications and/or enhancements
+                made between versions 5.00.01.4 and 5.00.1.09 of the QLogic SANsurfer
+                Switch Manager for SANbox and SANbox2 switch product families.
+                Version 5.0.1.10 adds support for the SANbox 1400 4Gb fibre channel
+                switch and adds localization of specific languages. Version
+                5.00.1.09 should only be used in conjunction with 5.0.1 switch firmware.
+        </p>
+        <p>
+                The following changes have been made to the QLogic SANsurfer Switch
+                Manager for SANbox and SANbox2 between versions 5.00.01.4 and 5.00.1.09.
+        </p>
+        <ul>
+          <li>
+                Added support for the SANbox 1400 4Gb fibre channel switch
+                 - 10 Port Switch (All 1Gb/2Gb/4Gb ports)
+                 - External Power Supply
+                 - Only one ISL allowed by default
+          </li>
+          <li>
+                Added localization support for English, German, French, Spanish,
+                 Italian, Portuguese (Brazilian), Korean, Japanese, and Chinese
+                 (Simplified) languages.
+          </li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+</component>

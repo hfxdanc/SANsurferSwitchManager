@@ -1,0 +1,201 @@
+app-id: org.flatpak.SANsurfer_Switch_Manager
+runtime: org.freedesktop.Platform
+runtime-version: '21.08'
+sdk: org.freedesktop.Sdk
+command: SANsurfer_Switch_Manager.sh
+#rename-icon: SAN
+branch: main
+tags:
+  - proprietary
+
+add-extensions:
+  # Support 32-bit at runtime
+  org.freedesktop.Platform.Compat.i386:
+    directory: lib/i386-linux-gnu
+    version: '21.08'
+
+  # This is not strictly required, but needed for debugging 32-bit programs
+  org.freedesktop.Platform.Compat.i386.Debug:
+    directory: lib/debug
+    version: '21.08'
+    no-autodownload: true
+
+# Support 32-bit at buildtime
+sdk-extensions:
+  - org.freedesktop.Sdk.Compat.i386
+  - org.freedesktop.Sdk.Extension.toolchain-i386
+
+cleanup:
+  - '*.la'
+  - '*.a'
+  - /include
+  - /share/man
+
+finish-args:
+  - --allow=multiarch
+  - --share=network
+  - --socket=x11
+  - --socket=fallback-x11
+  - --share=ipc
+  - --socket=wayland
+  - --filesystem=~/.SANboxManager.properties:rw
+  - --filesystem=~/.local/share/SANboxManager:create
+
+modules:
+  - name: bundle-setup
+    buildsystem: simple
+    build-commands:
+      - |
+        mkdir -p /app/lib/i386-linux-gnu
+        mkdir -p /app/lib/debug
+        install -Dm644 ld.so.conf -t /app/etc/
+    sources:
+      - type: file
+        dest-filename: ld.so.conf
+        url: data:/app/lib%0A/app/lib/i386-linux-gnu%0A
+
+  - name: xxd
+    buildsystem: simple
+    build-options:
+      env:
+        PERL5LIB: /app/lib/perl5
+        PERL_MM_OPT: INSTALL_BASE=/app
+    build-commands:
+     - make -C src/xxd
+     - install -Dt /app/bin src/xxd/xxd
+    sources:
+      - type: git
+        url: https://github.com/vim/vim
+        tag: v8.2.0788
+        commit: deb17451edd65e2af1d155bce0886e856a716591
+    cleanup:
+      - "*"
+
+  - name: perl-html-entities
+    buildsystem: simple
+    build-options:
+      env:
+        PERL5LIB: /app/lib/perl5
+        PERL_MM_OPT: INSTALL_BASE=/app
+    build-commands:
+     - perl Makefile.PL
+     - make install
+    sources:
+      - type: archive
+        url: https://cpan.metacpan.org/authors/id/G/GA/GAAS/HTML-Parser-3.72.tar.gz
+        sha256: ec28c7e1d9e67c45eca197077f7cdc41ead1bb4c538c7f02a3296a4bb92f608b
+    post-install:
+      - find /app/lib/perl5 -type f -exec chmod u+w {} \;
+    cleanup:
+      - "*"
+
+  - name: netsurf-gtk3
+    buildsystem: simple
+    build-options:
+      env:
+        CFLAGS: -I/usr/include/gtk-3.0 -I/usr/include/pango-1.0 -I/usr/include/atk-1.0
+        CXXFLAGS: -I/usr/include/gtk-3.0 -I/usr/include/pango-1.0 -I/usr/include/atk-1.0
+        PERL5LIB: /app/lib/perl5
+        PERL_MM_OPT: INSTALL_BASE=/app
+    build-commands:
+     - make PREFIX=/app TARGET=gtk3 install
+    sources:
+      - type: git
+        url: git://git.netsurf-browser.org/netsurf-all.git
+        tag: release/3.10
+        commit: 5815f4e272b73d9919b40b2a7ce88b5d7eb08dd4
+
+  - name: SANsurfer_Switch_Manager
+    buildsystem: simple
+    build-options:
+      strip: false
+    build-commands:
+      - | 
+        tar xzf SANsurferSwitchManager_Linux_5.00.1.09.tar.gz
+        echo "2" | ./SANsurferSwitchManager_Linux_5.00.1.09.bin -i console -f installer.properties
+        patch -d /app/bin SANsurfer_Switch_Manager <LAXUNIX.SH.patch
+        patch -d /app/bin SANsurfer_Performance_Viewer <LAXUNIX.SH.patch
+        sed -i 's|^\(lax.stderr.redirect=\).*$|\1/var/data/out.txt|' /app/bin/SANsurfer_Switch_Manager.lax
+        sed -i 's|^\(lax.stdout.redirect=\).*$|\1/var/data/out.txt|' /app/bin/SANsurfer_Switch_Manager.lax
+        sed -i 's|^\(lax.stderr.redirect=\).*$|\1/var/data/outprf.txt|' /app/bin/SANsurfer_Performance_Viewer.lax
+        sed -i 's|^\(lax.stdout.redirect=\).*$|\1/var/data/outprf.txt|' /app/bin/SANsurfer_Performance_Viewer.lax
+        sed -i 's|^\(log.file.path=\).*$|\1/var/data|' /app/bin/local.properties
+        sed -i 's|^\(node.browser.location=\).*$|\1/app/bin/netsurf-gtk3|' /app/bin/local.properties
+        echo "node.option.switch.window.height=640" >> /app/bin/local.properties
+        echo "node.option.switch.window.lastpositionX=100" >> /app/bin/local.properties
+        echo "node.option.switch.window.lastpositionY=100" >> /app/bin/local.properties
+        echo "node.option.switch.window.width=800" >> /app/bin/local.properties
+        mv /app/bin/local.properties /app/bin/.local.properties && ln -s /var/data/local.properties /app/bin/local.properties
+        rm /app/bin/*.txt
+        for file in alarms.txt events.txt hosts.txt; do ln -s /var/data/$file /app/bin/$file; done
+        install -Dm 755 SANsurfer_Switch_Manager.sh /app/bin/SANsurfer_Switch_Manager.sh
+        install -Dm 644 SANsurfer_Switch_Manager.metainfo.xml /app/share/metainfo/${FLATPAK_ID}.metainfo.xml
+    post-install:
+      - |
+        desktop-file-install \
+          --dir=/app/share/applications \
+          --mode=644 \
+          --set-name="SANsurfer Switch Manager" \
+          --set-generic-name="QLogic Fibre Channel Switch Management tool" \
+          --set-comment="Should only be used in conjunction with correct version of switch firmware" \
+          --set-icon=${FLATPAK_ID} \
+          --add-category=System \
+          --add-category=Settings \
+          --add-category=HardwareSettings \
+          ${FLATPAK_ID}.desktop
+      - desktop-file-edit --set-key=Exec --set-value=/app/bin/SANsurfer_Switch_Manager.sh /app/share/applications/${FLATPAK_ID}.desktop
+      - desktop-file-edit --set-key=Terminal --set-value="false" /app/share/applications/${FLATPAK_ID}.desktop
+      - desktop-file-edit --set-key=Keywords --set-value="QLogic;SANbox;FCAL;switch" /app/share/applications/${FLATPAK_ID}.desktop
+      - |
+        for size in 64 128
+        do
+          install -d /app/share/icons/hicolor/${size}x${size}/apps
+          gdk-pixbuf-thumbnailer -s ${size} qlogic.png /app/share/icons/hicolor/${size}x${size}/apps/${FLATPAK_ID}.png
+        done
+    cleanup:
+      - '*.orig'
+      - /bin/Uninstall_SANsurfer_Switch_Manager
+    sources:
+      - type: file
+        url: https://driverdownloads.qlogic.com/QLogicDriverDownloads_UI/Files_bk1/TempDownlods/15063/SANsurferSwitchManager_Linux_5.00.1.09.tar.gz
+        sha256: b3a597780f7571ff230af360b4ea0571de6def723fc1e31165c5f6dbdbe2145b
+      - type: file
+        dest-filename: installer.properties
+        url: data:USER_INSTALL_DIR=/app/bin%0A
+      - type: file
+        path: LAXUNIX.SH.patch
+        sha256: 471f95a8ec35582c9cced16227849c535eadc969a201acca930407411236c0f6
+      - type: file
+        dest-filename: org.flatpak.SANsurfer_Switch_Manager.desktop
+        url: data:[Desktop Entry]%0AType=Application%0A
+      - type: file
+        dest-filename: qlogic.png
+        url: https://lh3.ggpht.com/d_hgyj6IhFyZYYMdnIrhe3Ika30-i8ow5AdQT-Pu125ErPyUqMpJRS_Di2iIklDBOtA=s180
+        sha256: 57912ce3b3b9fbaa1e9549c1adb2cba31447a416c11d0c202e0dd80814776e88
+      - type: file
+        path: SANsurfer_Switch_Manager.metainfo.xml
+        sha256: 3d72cb3f167458a73a5fef42185edb6c9fa34537bd668a90764ba110b2063747
+      - type: script
+        dest-filename: SANsurfer_Switch_Manager.sh
+        commands:
+          - |
+            test -f /var/data/local.properties || cp /app/bin/.local.properties /var/data/local.properties
+            export DISPLAY=${DISPLAY:-:0}
+            cd ~/.local/share/SANboxManager && SANsurfer_Switch_Manager "$@"
+
+  - name: jre1.8.0_311
+    buildsystem: simple
+    build-options:
+      strip: false
+    build-commands:
+      - |
+        cp -R jre1.8.0_311 /app/bin/
+        rm -rf /app/bin/jre && ln -s /app/bin/jre1.8.0_311 /app/bin/jre
+    sources:
+      - type: archive
+        archive-type: tar-gzip
+        dest-filename: jre1.8.0_311.tar.gz
+        dest: jre1.8.0_311
+        url: https://javadl.oracle.com/webapps/download/AutoDL?BundleId=245467_4d5417147a92418ea8b615e228bb6935
+        sha256: 5ff9f78eab3ba8db902589c880c08d07873261b8caf3a2e0ef97392b2e476439
+

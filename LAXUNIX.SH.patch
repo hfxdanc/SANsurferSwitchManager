@@ -1,0 +1,19 @@
+--- ./LAXUNIX.SH.orig	2021-10-20 12:16:03.708470348 -0300
++++ ./LAXUNIX.SH	2021-10-20 12:40:44.025944169 -0300
+@@ -1487,6 +1487,8 @@
+ 		# the call will hang, if it -is- vulnerable!
+ 		export LD_ASSUME_KERNEL=2.2.5
+ 		
++		$actvm -version > /dev/null 2> /dev/null
++		if [ "$?" -eq "0" ]; then
+ 		eval `$actvm -version 2>&1 | $AWK '
+ 			BEGIN {
+ 				vendor="Sun"
+@@ -1522,6 +1524,7 @@
+ 			debugOut "Your JVM is OK! Congratulations!"
+ 		fi
+ 	fi
++	fi
+ fi
+ 
+ if [ $linux_LD_ASSUME_KERNEL_hack -eq 1 ]; then
