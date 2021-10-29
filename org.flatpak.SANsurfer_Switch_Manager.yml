@@ -174,7 +174,7 @@ modules:
         sha256: 57912ce3b3b9fbaa1e9549c1adb2cba31447a416c11d0c202e0dd80814776e88
       - type: file
         path: SANsurfer_Switch_Manager.metainfo.xml
-        sha256: 3d72cb3f167458a73a5fef42185edb6c9fa34537bd668a90764ba110b2063747
+        sha256: aafbe257dcbd72e1ccd508f1540698a9aec75b2b77b94396700d9df6e3d0c3f0
       - type: script
         dest-filename: SANsurfer_Switch_Manager.sh
         commands:
